@@ -18,7 +18,7 @@ st.write("Apni class/exam aur answer ka tarika chunein, fir sawal poochein!")
 # Student ke liye choices
 exam_class = st.selectbox(
     "Aap kis class ya exam ki taiyari kar rahe hain?", 
-    ["Class 10", "Class 12", "NDA", "Agniveer", "Air Force", "Other Competitive Exam"]
+    ["Class 9", "Class 10", "Class 11", "Class 12", "NDA", "UPSC", "Agniveer", "Air Force", "Other Competitive Exam"]
 )
 
 style = st.selectbox(
