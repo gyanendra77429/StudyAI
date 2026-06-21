@@ -1,20 +1,21 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 
-# 1. API Key ko safe tarike se check karna
+# 1. Nayi library ke mutabik API Key set karna
 if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    # Naya SDK Client initialize ho raha hai
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 else:
     st.error("API Key nahi mili! Kripya Streamlit ke Advanced Settings me GEMINI_API_KEY set karein.")
     st.stop()
 
-# 2. App ka Interface (Look) design karna
+# 2. App ka Interface (Look)
 st.set_page_config(page_title="AI Study Partner", page_icon="📚", layout="centered")
 
 st.title("📚 Custom AI Study Partner")
 st.write("Apni class/exam aur answer ka tarika chunein, fir sawal poochein!")
 
-# Student ke liye options
+# Student ke liye choices
 exam_class = st.selectbox(
     "Aap kis class ya exam ki taiyari kar rahe hain?", 
     ["Class 10", "Class 12", "NDA", "Agniveer", "Air Force", "Other Competitive Exam"]
@@ -30,18 +31,14 @@ style = st.selectbox(
     ]
 )
 
-# Sawal likhne ki jagah
-user_question = st.text_area("Apna sawal ya topic yahan likhein:", placeholder="Example: Photosynthesis kya hai? ya English Grammar ke rules...")
+user_question = st.text_area("Apna sawal ya topic yahan likhein:", placeholder="Example: Photosynthesis kya hai? ya board exam ke imp questions...")
 
-# Button aur AI ka kaam
+# 3. Jawab nikalne ka process
 if st.button("Jawab Dekho ✨", use_container_width=True):
     if user_question:
         with st.spinner("AI aapke liye jawab taiyar kar raha hai..."):
             try:
-                # Gemini ka sabse latest fast free model
-                model = genai.GenerativeModel('gemini-pro')
-                
-                # AI ko samjhana ki use kaise jawab dena hai
+                # System instructions ko prompt me jodna
                 prompt = (
                     f"You are an expert tutor. The student is preparing for: {exam_class}. "
                     f"They want the response in this style: {style}. "
@@ -50,9 +47,12 @@ if st.button("Jawab Dekho ✨", use_container_width=True):
                     f"Question: {user_question}"
                 )
                 
-                response = model.generate_content(prompt)
+                # Naye SDK ka content generation tarika (Stable Version)
+                response = client.models.generate_content(
+                    model='gemini-1.5-flash',
+                    contents=prompt,
+                )
                 
-                # Jawab screen par dikhana
                 st.success("🤖 AI Ka Jawab:")
                 st.markdown(response.text)
                 
