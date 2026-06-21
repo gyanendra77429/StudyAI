@@ -39,7 +39,7 @@ if st.button("Jawab Dekho ✨", use_container_width=True):
         with st.spinner("AI aapke liye jawab taiyar kar raha hai..."):
             try:
                 # Gemini ka sabse latest fast free model
-                model = genai.GenerativeModel('gemini-1.5-flash-latest')
+                model = genai.GenerativeModel('gemini-pro')
                 
                 # AI ko samjhana ki use kaise jawab dena hai
                 prompt = (
