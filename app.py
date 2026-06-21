@@ -1,6 +1,11 @@
 import streamlit as st
 from google import genai
-from streamlit_mic_recorder import mic_recorder
+from streamlit_mic_recorder import speech_to_text
+
+# ==========================================
+# 🛑 BUS YAHAN APNA NAAM BADLEIN 🛑
+DEVELOPER_NAME = "Gyanendra Singh" 
+# ==========================================
 
 # 1. API Key Setup
 if "GEMINI_API_KEY" in st.secrets:
@@ -13,49 +18,53 @@ else:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 3. UI Setup
-st.set_page_config(page_title="AI Study Partner v2", page_icon="🎙️")
+# 3. UI Setup & Branding
+st.set_page_config(page_title=f"AI Study Partner by {DEVELOPER_NAME}", page_icon="📚")
 st.title("📚 AI Study Partner v2.0")
-st.sidebar.title("Settings")
-exam_class = st.sidebar.selectbox("Class/Exam:", ["Class 10", "Class 12", "NDA", "Agniveer", "Other"])
+
+# --- SIDEBAR PROMOTION ---
+st.sidebar.title("⚙️ Settings & Credits")
+exam_class = st.sidebar.selectbox("Class/Exam:", ["Class 9", "Class 10", "Class 11", "Class 12", "NDA", "Agniveer", "Other"])
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 👨‍💻 Developer Profile")
+st.sidebar.success(f"**Created by: {Gyanendra}**")
+st.sidebar.info("🚀 Powered by Gemini AI & Streamlit")
+
+if st.sidebar.button("Clear Chat Memory"):
+    st.session_state.messages = []
+    st.rerun()
+# -------------------------
 
 # Chat history ko screen par dikhana
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 4. Voice Input (Mic)
+# 4. Voice Input 
 st.write("---")
 col1, col2 = st.columns([1, 4])
 with col1:
     st.write("Voice Input:")
-    audio = mic_recorder(start_prompt="🎤 Start", stop_prompt="🛑 Stop", key='recorder')
+    voice_text = speech_to_text(start_prompt="🎤 Start", stop_prompt="🛑 Stop", language='hi', key='recorder')
 
-# Agar mic se kuch bola gaya ho
-voice_text = ""
-if audio:
-    voice_text = audio['text']
-    if voice_text:
-        st.info(f"Aapne bola: {voice_text}")
+if voice_text:
+    st.info(f"🎤 Aapne bola: {voice_text}")
 
 # 5. Chat Input (Type or Voice)
 prompt = st.chat_input("Apna sawal likhein ya mic use karein...")
 
-# Agar voice_text hai toh use prompt bana dena
 if voice_text and not prompt:
     prompt = voice_text
 
 if prompt:
-    # User ka sawal history me jodo
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # AI ka jawab nikalna (Pichli baaton ke sath)
     with st.chat_message("assistant"):
         with st.spinner("AI soch raha hai..."):
             try:
-                # Chat History ko AI ko bhejna
                 full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
                 system_instruction = f"You are a helpful tutor for {exam_class}. Context of previous chat: {full_context}"
                 
@@ -67,18 +76,18 @@ if prompt:
                 
                 answer = response.text
                 st.markdown(answer)
-                # AI ka jawab history me jodo
+                
                 st.session_state.messages.append({"role": "assistant", "content": answer})
                 
-                # FAQs Suggestion (Related Question button style)
                 st.write("---")
-                st.caption("Aap ye bhi pooch sakte hain:")
-                st.button("Isko aur detail me samjhao", on_click=lambda: st.session_state.update({"follow_up": "Is topic ko aur detail me samjhao"}))
+                st.caption("💡 Aap isi jawab se related koi bhi follow-up sawal niche type karke ya bolkar pooch sakte hain!")
                 
             except Exception as e:
                 st.error(f"Error: {e}")
 
-# Sidebar me reset button
-if st.sidebar.button("Clear Chat Memory"):
-    st.session_state.messages = []
-    st.rerun()
+# --- FOOTER PROMOTION ---
+st.markdown("---")
+st.markdown(
+    f"<p style='text-align: center; color: gray; font-size: 14px;'>Made with ❤️ by <b>{Gyanendra Singh}</b> | © 2026 All Rights Reserved</p>", 
+    unsafe_allow_html=True
+)
