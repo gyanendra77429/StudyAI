@@ -1,59 +1,84 @@
 import streamlit as st
 from google import genai
+from streamlit_mic_recorder import mic_recorder
 
-# 1. API Key set karna
+# 1. API Key Setup
 if "GEMINI_API_KEY" in st.secrets:
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 else:
-    st.error("API Key nahi mili! Kripya Streamlit ke Advanced Settings me GEMINI_API_KEY set karein.")
+    st.error("API Key nahi mili! Settings me GEMINI_API_KEY set karein.")
     st.stop()
 
-# 2. App ka Interface
-st.set_page_config(page_title="AI Study Partner", page_icon="📚", layout="centered")
+# 2. Memory (Chat History) Initialize karna
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-st.title("📚 Custom AI Study Partner")
-st.write("Apni class/exam aur answer ka tarika chunein, fir sawal poochein!")
+# 3. UI Setup
+st.set_page_config(page_title="AI Study Partner v2", page_icon="🎙️")
+st.title("📚 AI Study Partner v2.0")
+st.sidebar.title("Settings")
+exam_class = st.sidebar.selectbox("Class/Exam:", ["Class 10", "Class 12", "NDA", "Agniveer", "Other"])
 
-exam_class = st.selectbox(
-    "Aap kis class ya exam ki taiyari kar rahe hain?", 
-    ["Class 10", "Class 12", "NDA", "Agniveer", "Air Force", "Other Competitive Exam"]
-)
+# Chat history ko screen par dikhana
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-style = st.selectbox(
-    "Aapko jawab kis tarike se chahiye?", 
-    [
-        "Easy Explanation (Bilkul aasan bhasha me)", 
-        "Short Notes (To-the-point bullet points)", 
-        "Step-by-Step Solution (Maths/Science ke liye)", 
-        "Exam Oriented (Important Questions & Answers)"
-    ]
-)
+# 4. Voice Input (Mic)
+st.write("---")
+col1, col2 = st.columns([1, 4])
+with col1:
+    st.write("Voice Input:")
+    audio = mic_recorder(start_prompt="🎤 Start", stop_prompt="🛑 Stop", key='recorder')
 
-user_question = st.text_area("Apna sawal ya topic yahan likhein:", placeholder="Example: Photosynthesis kya hai? ya board exam ke imp questions...")
+# Agar mic se kuch bola gaya ho
+voice_text = ""
+if audio:
+    voice_text = audio['text']
+    if voice_text:
+        st.info(f"Aapne bola: {voice_text}")
 
-# 3. Jawab nikalne ka process
-if st.button("Jawab Dekho ✨", use_container_width=True):
-    if user_question:
-        with st.spinner("AI aapke liye jawab taiyar kar raha hai..."):
+# 5. Chat Input (Type or Voice)
+prompt = st.chat_input("Apna sawal likhein ya mic use karein...")
+
+# Agar voice_text hai toh use prompt bana dena
+if voice_text and not prompt:
+    prompt = voice_text
+
+if prompt:
+    # User ka sawal history me jodo
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # AI ka jawab nikalna (Pichli baaton ke sath)
+    with st.chat_message("assistant"):
+        with st.spinner("AI soch raha hai..."):
             try:
-                prompt = (
-                    f"You are an expert tutor. The student is preparing for: {exam_class}. "
-                    f"They want the response in this style: {style}. "
-                    f"Answer the following question clearly. Use friendly Hinglish/Hindi mixed language "
-                    f"so it's easy to understand. Keep formulas and important terms highlighted. \n\n"
-                    f"Question: {user_question}"
-                )
+                # Chat History ko AI ko bhejna
+                full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
+                system_instruction = f"You are a helpful tutor for {exam_class}. Context of previous chat: {full_context}"
                 
-                # Yahan humne 2026 ka sabse naya stable model daal diya hai
                 response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model='gemini-1.5-flash',
                     contents=prompt,
+                    config={'system_instruction': system_instruction}
                 )
                 
-                st.success("🤖 AI Ka Jawab:")
-                st.markdown(response.text)
+                answer = response.text
+                st.markdown(answer)
+                # AI ka jawab history me jodo
+                st.session_state.messages.append({"role": "assistant", "content": answer})
+                
+                # FAQs Suggestion (Related Question button style)
+                st.write("---")
+                st.caption("Aap ye bhi pooch sakte hain:")
+                st.button("Isko aur detail me samjhao", on_click=lambda: st.session_state.update({"follow_up": "Is topic ko aur detail me samjhao"}))
                 
             except Exception as e:
-                st.error(f"Kuch galti hui: {e}")
-    else:
-        st.warning("Kripya pehle apna sawal type karein!")
+                st.error(f"Error: {e}")
+
+# Sidebar me reset button
+if st.sidebar.button("Clear Chat Memory"):
+    st.session_state.messages = []
+    st.rerun()
