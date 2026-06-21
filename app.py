@@ -28,7 +28,7 @@ exam_class = st.sidebar.selectbox("Class/Exam:", ["Class 9", "Class 10", "Class 
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👨‍💻 Developer Profile")
-st.sidebar.success(f"**Created by: {Gyanendra}**")
+st.sidebar.success(f"**Created by: {DEVELOPER_NAME}**")
 st.sidebar.info("🚀 Powered by Gemini AI & Streamlit")
 
 if st.sidebar.button("Clear Chat Memory"):
@@ -88,6 +88,6 @@ if prompt:
 # --- FOOTER PROMOTION ---
 st.markdown("---")
 st.markdown(
-    f"<p style='text-align: center; color: gray; font-size: 14px;'>Made with ❤️ by <b>{Gyanendra Singh}</b> | © 2026 All Rights Reserved</p>", 
+    f"<p style='text-align: center; color: gray; font-size: 14px;'>Made with ❤️ by <b>{DEVELOPER_NAME}</b> | © 2026 All Rights Reserved</p>", 
     unsafe_allow_html=True
 )
