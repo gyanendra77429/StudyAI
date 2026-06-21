@@ -3,7 +3,7 @@ from google import genai
 from streamlit_mic_recorder import speech_to_text
 
 # ==========================================
-# 🛑 BUS YAHAN APNA NAAM BADLEIN 🛑
+# 🎯 DEVELOPER BRANDING EMBEDDED
 DEVELOPER_NAME = "Gyanendra Singh" 
 # ==========================================
 
@@ -22,9 +22,25 @@ if "messages" not in st.session_state:
 st.set_page_config(page_title=f"AI Study Partner by {DEVELOPER_NAME}", page_icon="📚")
 st.title("📚 AI Study Partner v2.0")
 
-# --- SIDEBAR PROMOTION ---
-st.sidebar.title("⚙️ Settings & Credits")
-exam_class = st.sidebar.selectbox("Class/Exam:", ["Class 9", "Class 10", "Class 11", "Class 12", "NDA", "Agniveer", "Other"])
+# --- SIDEBAR: OPTIONS & PROMOTION ---
+st.sidebar.title("⚙️ Study Options")
+
+# Class/Exam Criteria
+exam_class = st.sidebar.selectbox(
+    "Aap kis exam ki taiyari kar rahe hain?", 
+    ["Class 10", "Class 12", "NDA", "Agniveer", "Air Force", "Other"]
+)
+
+# Answer Style Criteria (Wapas Jod Diya!)
+style = st.sidebar.selectbox(
+    "Aapko jawab kis tarike se chahiye?", 
+    [
+        "Easy Explanation (Bilkul aasan bhasha me)", 
+        "Short Notes (To-the-point bullet points)", 
+        "Step-by-Step Solution (Maths/Science ke liye)", 
+        "Exam Oriented (Important Questions & Answers)"
+    ]
+)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👨‍💻 Developer Profile")
@@ -34,7 +50,7 @@ st.sidebar.info("🚀 Powered by Gemini AI & Streamlit")
 if st.sidebar.button("Clear Chat Memory"):
     st.session_state.messages = []
     st.rerun()
-# -------------------------
+# -------------------------------------
 
 # Chat history ko screen par dikhana
 for message in st.session_state.messages:
@@ -66,10 +82,19 @@ if prompt:
         with st.spinner("AI soch raha hai..."):
             try:
                 full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
-                system_instruction = f"You are a helpful tutor for {exam_class}. Context of previous chat: {full_context}"
                 
+                # System instruction me Class aur Style dono ko include kiya hai
+                system_instruction = (
+                    f"You are an expert tutor. The student is preparing for: {exam_class}. "
+                    f"They want the response in this style: {style}. "
+                    f"Answer the question clearly. Use friendly Hinglish/Hindi mixed language "
+                    f"so it's easy to understand. Keep formulas and important terms highlighted. \n\n"
+                    f"Context of previous chat: {full_context}"
+                )
+                
+                # Hamesha ke liye 2.5-flash model set kar diya hai
                 response = client.models.generate_content(
-                    model='gemini-1.5-flash',
+                    model='gemini-2.5-flash',
                     contents=prompt,
                     config={'system_instruction': system_instruction}
                 )
