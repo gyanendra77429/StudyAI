@@ -3,7 +3,7 @@ from google import genai
 from streamlit_mic_recorder import speech_to_text
 
 # ==========================================
-# 🎯 DEVELOPER BRANDING EMBEDDED
+# 🎯 DEVELOPER BRANDING
 DEVELOPER_NAME = "Gyanendra Singh" 
 # ==========================================
 
@@ -25,13 +25,11 @@ st.title("📚 AI Study Partner v2.0")
 # --- SIDEBAR: OPTIONS & PROMOTION ---
 st.sidebar.title("⚙️ Study Options")
 
-# Class/Exam Criteria
 exam_class = st.sidebar.selectbox(
     "Aap kis exam ki taiyari kar rahe hain?", 
     ["Class 10", "Class 12", "NDA", "Agniveer", "Air Force", "Other"]
 )
 
-# Answer Style Criteria (Wapas Jod Diya!)
 style = st.sidebar.selectbox(
     "Aapko jawab kis tarike se chahiye?", 
     [
@@ -83,16 +81,18 @@ if prompt:
             try:
                 full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
                 
-                # System instruction me Class aur Style dono ko include kiya hai
+                # 🔥 YAHAN HUMNE AI KO SPECIALLY INSTRUCT KIYA HAI KI WEIRD CODES NA BHEJE
                 system_instruction = (
                     f"You are an expert tutor. The student is preparing for: {exam_class}. "
                     f"They want the response in this style: {style}. "
-                    f"Answer the question clearly. Use friendly Hinglish/Hindi mixed language "
-                    f"so it's easy to understand. Keep formulas and important terms highlighted. \n\n"
+                    f"Answer the question clearly. Use friendly Hinglish/Hindi mixed language. \n\n"
+                    f"CRITICAL RULES FOR FORMULAS:\n"
+                    f"1. DO NOT use complex LaTeX formatting or special delimiters like $$, \[, \], or $. \n"
+                    f"2. Write ALL physics and math formulas in simple plain text (e.g., write E = mc^2, v = u + at, F = g*(m1*m2)/r^2) so it reads naturally without any format breaks.\n"
+                    f"3. Keep important laws or terms bolded using standard **text** format.\n\n"
                     f"Context of previous chat: {full_context}"
                 )
                 
-                # Hamesha ke liye 2.5-flash model set kar diya hai
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
                     contents=prompt,
