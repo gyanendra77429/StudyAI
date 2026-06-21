@@ -1,24 +1,22 @@
 import streamlit as st
 from google import genai
 
-# 1. Nayi library ke mutabik API Key set karna
+# 1. API Key set karna
 if "GEMINI_API_KEY" in st.secrets:
-    # Naya SDK Client initialize ho raha hai
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 else:
     st.error("API Key nahi mili! Kripya Streamlit ke Advanced Settings me GEMINI_API_KEY set karein.")
     st.stop()
 
-# 2. App ka Interface (Look)
+# 2. App ka Interface
 st.set_page_config(page_title="AI Study Partner", page_icon="📚", layout="centered")
 
 st.title("📚 Custom AI Study Partner")
 st.write("Apni class/exam aur answer ka tarika chunein, fir sawal poochein!")
 
-# Student ke liye choices
 exam_class = st.selectbox(
     "Aap kis class ya exam ki taiyari kar rahe hain?", 
-    ["Class 9", "Class 10", "Class 11", "Class 12", "NDA", "UPSC", "Agniveer", "Air Force", "Other Competitive Exam"]
+    ["Class 10", "Class 12", "NDA", "Agniveer", "Air Force", "Other Competitive Exam"]
 )
 
 style = st.selectbox(
@@ -38,7 +36,6 @@ if st.button("Jawab Dekho ✨", use_container_width=True):
     if user_question:
         with st.spinner("AI aapke liye jawab taiyar kar raha hai..."):
             try:
-                # System instructions ko prompt me jodna
                 prompt = (
                     f"You are an expert tutor. The student is preparing for: {exam_class}. "
                     f"They want the response in this style: {style}. "
@@ -47,9 +44,9 @@ if st.button("Jawab Dekho ✨", use_container_width=True):
                     f"Question: {user_question}"
                 )
                 
-                # Naye SDK ka content generation tarika (Stable Version)
+                # Yahan humne 2026 ka sabse naya stable model daal diya hai
                 response = client.models.generate_content(
-                    model='gemini-1.5-flash',
+                    model='gemini-2.5-flash',
                     contents=prompt,
                 )
                 
